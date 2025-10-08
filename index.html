@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bug Bash!</title>
+  <style>
+    body {
+      font-family: 'Fredoka One', 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #a7e9f7 0%, #43aa8b 100%);
+      color: #222;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+      color: #2196f3;
+      text-shadow: 2px 2px 0 #fff, 4px 4px 0 #43aa8b;
+      letter-spacing: 2px;
+    }
+
+    .score-timer {
+      display: flex;
+      justify-content: space-between;
+      max-width: 400px;
+      margin: 0 auto 20px;
+      font-size: 1.3em;
+      background: #e3f6fd;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #2196f344;
+      padding: 10px 20px;
+      color: #2196f3;
+      font-weight: bold;
+    }
+
+    .grid-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      margin-top: 8px;
+      margin-bottom: 8px;
+      position: static;
+      min-height: unset;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-gap: 20px;
+      background: #176087;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px #2196f366, 0 2px 8px #43aa8b22;
+      padding: 32px 32px 24px 32px;
+      border: 2px solid #43aa8b;
+      position: static;
+      left: unset;
+      bottom: unset;
+      transform: unset;
+    }
+
+    .hole {
+      width: 100px;
+      height: 100px;
+      border: 3px solid #2196f3;
+      background: radial-gradient(circle at 60% 40%, #444a57 70%, #232733 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 2px 8px #2228;
+      transition: transform 0.1s;
+    }
+    .hole:active {
+      transform: scale(0.95);
+    }
+
+    .bug {
+      color: #43aa8b;
+      font-size: 3em;
+      filter: drop-shadow(0 0 6px #fff) drop-shadow(2px 2px 0 #2196f3);
+      animation: bug-bounce 0.4s;
+    }
+    @keyframes bug-bounce {
+      0% { transform: scale(0.7); }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .squashed {
+      color: #2196f3;
+      font-size: 2.5em;
+      filter: drop-shadow(0 0 6px #fff) drop-shadow(2px 2px 0 #43aa8b);
+      animation: squash-pop 0.3s;
+    }
+    .squashed-butterfly {
+      color: #ff5722;
+      font-size: 2.5em;
+      filter: drop-shadow(0 0 6px #fff) drop-shadow(2px 2px 0 #d7263d);
+      animation: squash-pop 0.3s;
+    }
+    @keyframes squash-pop {
+      0% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    #game-over {
+      margin-top: 20px;
+      font-size: 1.7em;
+      color: #2196f3;
+      text-shadow: 2px 2px 0 #43aa8b;
+      font-family: 'Fredoka One', 'Comic Sans MS', cursive, sans-serif;
+    }
+    .rare-bug {
+      color: #d7263d;
+      font-size: 3em;
+      filter: drop-shadow(0 0 6px #fff) drop-shadow(2px 2px 0 #2196f3);
+      animation: bug-bounce 0.4s;
+    }
+    .butterfly {
+      color: #f7b267;
+      font-size: 3em;
+      filter: drop-shadow(0 0 6px #fff) drop-shadow(2px 2px 0 #43aa8b);
+      animation: bug-bounce 0.4s;
+    }
+  </style>
+</head>
+<body>
+  <h1>BUG BASH!</h1>
+  <div class="score-timer">
+    <div>Score: <span id="score">0</span></div>
+    <div>Time: <span id="timer">30</span>s</div>
+  </div>
+  <button id="start-btn" style="margin-bottom:8px;font-size:1.2em;padding:10px 28px;cursor:pointer;background:#2196f3;color:#fff;border:2px solid #43aa8b;border-radius:12px;box-shadow:0 2px 8px #2196f344;font-family:'Fredoka One','Comic Sans MS',cursive,sans-serif;">Start Game</button>
+  <div class="grid-container">
+    <div class="grid" id="grid">
+    <!-- 12 Holes -->
+      <div class="hole" data-index="0"></div>
+      <div class="hole" data-index="1"></div>
+      <div class="hole" data-index="2"></div>
+      <div class="hole" data-index="3"></div>
+      <div class="hole" data-index="4"></div>
+      <div class="hole" data-index="5"></div>
+      <div class="hole" data-index="6"></div>
+      <div class="hole" data-index="7"></div>
+      <div class="hole" data-index="8"></div>
+      <div class="hole" data-index="9"></div>
+      <div class="hole" data-index="10"></div>
+      <div class="hole" data-index="11"></div>
+    </div>
+  </div>
+  <div id="game-over"></div>
+
+  <!-- Google Fonts for cartoon vibe -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <script>
+    const holes = document.querySelectorAll('.hole');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const gameOverEl = document.getElementById('game-over');
+    const startBtn = document.getElementById('start-btn');
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameInterval;
+    let bugInterval;
+    let gameActive = false;
+
+    function randomHole() {
+      return holes[Math.floor(Math.random() * holes.length)];
+    }
+
+    function showBug() {
+      if (!gameActive) return;
+      const hole = randomHole();
+      if (hole.classList.contains('bug') || hole.classList.contains('rare-bug') || hole.classList.contains('butterfly')) return;
+
+      // Decide which bug to show
+      let bugType = 'bug';
+      let emoji = '🐛';
+      let points = 10;
+      let className = 'bug';
+      let clickHandler;
+
+      // Butterfly appears more often as time runs out
+      let butterflyChance = 0.10;
+      if (timeLeft <= 10) butterflyChance = 0.35;
+      else if (timeLeft <= 20) butterflyChance = 0.20;
+      // 10% rare bug, butterflyChance for butterfly, rest normal bug
+      const rand = Math.random();
+      if (rand < 0.10) {
+  bugType = 'rare-bug';
+  emoji = '🪰';
+        points = 50;
+        className = 'rare-bug';
+        clickHandler = () => {
+          if (!hole.classList.contains('rare-bug') || !gameActive) return;
+          score += points;
+          scoreEl.textContent = score;
+          hole.textContent = '💥';
+          hole.classList.remove('rare-bug');
+          hole.classList.add('squashed');
+          triggerConfetti();
+          setTimeout(() => {
+            hole.textContent = '';
+            hole.classList.remove('squashed');
+          }, 500);
+        };
+    // Simple confetti effect
+    function triggerConfetti() {
+      const confettiColors = ['#43aa8b', '#2196f3', '#d7263d', '#f7b267', '#fff'];
+      for (let i = 0; i < 30; i++) {
+        const conf = document.createElement('div');
+        conf.style.position = 'fixed';
+        conf.style.left = (Math.random() * 100) + 'vw';
+        conf.style.top = (Math.random() * 40 + 20) + 'vh';
+        conf.style.width = '12px';
+        conf.style.height = '12px';
+        conf.style.borderRadius = '50%';
+        conf.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        conf.style.zIndex = 9999;
+        conf.style.opacity = 0.8;
+        conf.style.pointerEvents = 'none';
+        conf.style.transition = 'transform 1.2s ease, opacity 1.2s';
+        document.body.appendChild(conf);
+        setTimeout(() => {
+          conf.style.transform = `translateY(${80 + Math.random() * 40}vh)`;
+          conf.style.opacity = 0;
+        }, 50);
+        setTimeout(() => {
+          conf.remove();
+        }, 1400);
+      }
+    }
+      } else if (rand < 0.10 + butterflyChance) {
+        bugType = 'butterfly';
+        emoji = '🦋';
+        points = -30;
+        className = 'butterfly';
+        clickHandler = () => {
+          if (!hole.classList.contains('butterfly') || !gameActive) return;
+          score += points;
+          if (score < 0) score = 0;
+          scoreEl.textContent = score;
+          hole.textContent = '💥';
+          hole.classList.remove('butterfly');
+          hole.classList.add('squashed-butterfly');
+          setTimeout(() => {
+            hole.textContent = '';
+            hole.classList.remove('squashed-butterfly');
+          }, 500);
+        };
+      } else {
+        clickHandler = () => {
+          if (!hole.classList.contains('bug') || !gameActive) return;
+          score += points;
+          scoreEl.textContent = score;
+          hole.textContent = '💥';
+          hole.classList.remove('bug');
+          hole.classList.add('squashed');
+          setTimeout(() => {
+            hole.textContent = '';
+            hole.classList.remove('squashed');
+          }, 500);
+        };
+      }
+
+      hole.textContent = emoji;
+      hole.classList.add(className);
+      hole.onclick = clickHandler;
+
+      const hideTimer = setTimeout(() => {
+        if (hole.classList.contains(className)) {
+          hole.textContent = '';
+          hole.classList.remove(className);
+        }
+      }, 1000 + Math.random() * 1000);
+    }
+
+    function clearBugs() {
+      holes.forEach(hole => {
+        hole.textContent = '';
+        hole.classList.remove('bug', 'rare-bug', 'butterfly', 'squashed');
+        hole.onclick = null;
+      });
+    }
+
+    function startGame() {
+      score = 0;
+      scoreEl.textContent = score;
+      timeLeft = 30;
+      timerEl.textContent = timeLeft;
+      gameOverEl.textContent = '';
+      gameActive = true;
+      clearBugs();
+      startBtn.disabled = true;
+
+      gameInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(gameInterval);
+          clearInterval(bugInterval);
+          gameActive = false;
+          gameOverEl.textContent = `Game Over! Final Score: ${score}`;
+          startBtn.disabled = false;
+        }
+      }, 1000);
+
+      bugInterval = setInterval(showBug, 600);
+    }
+
+    startBtn.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
