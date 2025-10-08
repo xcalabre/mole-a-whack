@@ -9,6 +9,7 @@ let timeLeft = 30;
 let gameInterval;
 let bugInterval;
 let gameActive = false;
+let butterflyHit = false;
 
 function randomHole() {
   return holes[Math.floor(Math.random() * holes.length)];
@@ -21,9 +22,11 @@ function showBug() {
 
   // Decide which bug to show
   let bugType = 'bug';
-  let emoji = '🐛';
+  let bugEmojis = ['🐛', '🐜']; // caterpillar and ant
+  let emoji = bugEmojis[Math.floor(Math.random() * bugEmojis.length)];
+  let isAnt = emoji === '🐜';
   let points = 10;
-  let className = 'bug';
+  let className = isAnt ? 'ant' : 'bug';
   let clickHandler;
 
   // Butterfly appears more often as time runs out
@@ -57,6 +60,7 @@ function showBug() {
     className = 'butterfly';
     clickHandler = () => {
       if (!hole.classList.contains('butterfly') || !gameActive) return;
+      butterflyHit = true;
       score += points;
       if (score < 0) score = 0;
       scoreEl.textContent = score;
@@ -136,6 +140,7 @@ function startGame() {
   timerEl.textContent = timeLeft;
   gameOverEl.textContent = '';
   gameActive = true;
+  butterflyHit = false;
   clearBugs();
   startBtn.disabled = true;
 
@@ -148,8 +153,35 @@ function startGame() {
       gameActive = false;
       gameOverEl.textContent = `Game Over! Final Score: ${score}`;
       startBtn.disabled = false;
+      if (!butterflyHit) {
+        triggerFlowerShower();
+      }
     }
   }, 1000);
+function triggerFlowerShower() {
+  const flowerEmojis = ['🌸', '🌼', '🌻', '💐', '🌺'];
+  for (let i = 0; i < 60; i++) {
+    const flower = document.createElement('div');
+    flower.textContent = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
+    flower.style.position = 'fixed';
+    flower.style.left = (Math.random() * 100) + 'vw';
+    flower.style.top = (Math.random() * 10) + 'vh';
+    flower.style.fontSize = (3.5 + Math.random() * 2) + 'em';
+    flower.style.zIndex = 9999;
+    flower.style.opacity = 0.97;
+    flower.style.pointerEvents = 'none';
+    flower.style.transition = 'transform 2.2s ease, opacity 2.2s';
+    document.body.appendChild(flower);
+    setTimeout(() => {
+      const xOffset = (Math.random() - 0.5) * 200;
+      flower.style.transform = `translate(${xOffset}px, ${window.innerHeight * 0.8 + Math.random() * 60}px) rotate(${Math.random() * 360}deg)`;
+      flower.style.opacity = 0;
+    }, 50);
+    setTimeout(() => {
+      flower.remove();
+    }, 2400);
+  }
+}
 
   bugInterval = setInterval(showBug, 600);
 }

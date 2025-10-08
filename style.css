@@ -1,3 +1,10 @@
+.ant {
+  color: #fffbe6;
+  text-shadow: 0 0 8px #222, 2px 2px 0 #43aa8b;
+  font-size: 3em;
+  filter: drop-shadow(0 0 6px #fff) drop-shadow(2px 2px 0 #2196f3);
+  animation: bug-bounce 0.4s;
+}
 body {
   font-family: 'Fredoka One', 'Comic Sans MS', cursive, sans-serif;
   background: linear-gradient(135deg, #a7e9f7 0%, #43aa8b 100%);
@@ -23,8 +30,9 @@ body {
 }
 
 h1 {
-  font-size: 3em;
-  margin-bottom: 10px;
+  font-size: 3.6em;
+  margin-bottom: 33px;
+  margin-top: -5px;
   color: #2196f3;
   text-shadow: 2px 2px 0 #fff, 4px 4px 0 #43aa8b;
   letter-spacing: 2px;
